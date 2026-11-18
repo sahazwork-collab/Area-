@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NammaArea AI - Admin Dashboard</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fc;
+    color: #183153;
+}
+
+header {
+    background: #15375f;
+    color: white;
+    padding: 20px;
+}
+
+header h2 {
+    font-size: 21px;
+}
+
+header p {
+    margin-top: 7px;
+    font-size: 13px;
+    color: #d5e4f8;
+}
+
+.container {
+    padding: 22px 16px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.welcome {
+    margin-bottom: 22px;
+}
+
+.welcome h2 {
+    color: #164d91;
+    margin-bottom: 8px;
+}
+
+.welcome p {
+    color: #718096;
+    font-size: 14px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px #e0e6ef;
+}
+
+.stat-card p {
+    font-size: 13px;
+    color: #718096;
+}
+
+.stat-card h2 {
+    color: #1765c1;
+    margin-top: 10px;
+    font-size: 27px;
+}
+
+.panel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    box-shadow: 0 3px 12px #e0e6ef;
+}
+
+.panel h3 {
+    margin-bottom: 18px;
+    color: #164d91;
+}
+
+.complaint {
+    border: 1px solid #e1e8f0;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+.complaint h4 {
+    margin-bottom: 10px;
+    color: #164d91;
+}
+
+.complaint p {
+    font-size: 14px;
+    margin: 7px 0;
+    overflow-wrap: anywhere;
+}
+
+.complaint select {
+    padding: 10px;
+    border: 1px solid #ccd8e8;
+    border-radius: 7px;
+    margin-top: 10px;
+    width: 100%;
+    background: #f8faff;
+}
+
+.empty {
+    text-align: center;
+    color: #718096;
+    padding: 25px 5px;
+}
+
+.area-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 14px;
+}
+
+button {
+    background: #1765c1;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 11px 18px;
+    cursor: pointer;
+}
+
+footer {
+    background: #15375f;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+}
+
+@media(min-width:600px) {
+    .stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>🏙️ NammaArea AI</h2>
+    <p>Administrator Control Panel</p>
+</header>
+
+<div class="container">
+
+    <div class="welcome">
+        <h2>Admin Dashboard</h2>
+        <p>Monitor and manage community complaints.</p>
+    </div>
+
+    <div class="stats">
+
+        <div class="stat-card">
+            <p>Total Complaints</p>
+            <h2 id="total">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Pending</p>
+            <h2 id="pending">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>In Progress</p>
+            <h2 id="progress">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Resolved</p>
+            <h2 id="resolved">0</h2>
+        </div>
+
+    </div>
+
+    <div class="panel">
+        <h3>📋 Complaint Management</h3>
+        <div id="complaintList"></div>
+    </div>
+
+    <div class="panel">
+        <h3>📊 Area Analytics</h3>
+        <div id="areaAnalytics"></div>
+    </div>
+
+    <button onclick="loadDashboard()">↻ Refresh Dashboard</button>
+
+</div>
+
+<footer>
+    © 2026 NammaArea AI | Admin Panel
+</footer>
+
+<script>
+
+function loadDashboard() {
+
+    let complaints = JSON.parse(
+        localStorage.getItem("nammaComplaints") || "[]"
+    );
+
+    let pending = 0;
+    let progress = 0;
+    let resolved = 0;
+
+    let areaCounts = {};
+
+    complaints.forEach(item => {
+
+        if (item.status === "Pending") pending++;
+        else if (item.status === "In Progress") progress++;
+        else if (item.status === "Resolved") resolved++;
+
+        let area = (item.location || "Unknown").trim();
+
+        areaCounts[area] = (areaCounts[area] || 0) + 1;
+
+    });
+
+    document.getElementById("total").textContent =
+        complaints.length;
+
+    document.getElementById("pending").textContent =
+        pending;
+
+    document.getElementById("progress").textContent =
+        progress;
+
+    document.getElementById("resolved").textContent =
+        resolved;
+
+    const list = document.getElementById("complaintList");
+    list.innerHTML = "";
+
+    if (complaints.length === 0) {
+        list.innerHTML =
+            '<div class="empty">No complaints submitted yet.</div>';
+    }
+
+    complaints.forEach((item, index) => {
+
+        const card = document.createElement("div");
+        card.className = "complaint";
+
+        const title = document.createElement("h4");
+        title.textContent =
+            (item.category || "Complaint") + " #" + (index + 1);
+
+        const details = document.createElement("p");
+        details.textContent = "Name: " + item.name;
+
+        const description = document.createElement("p");
+        description.textContent =
+            "Description: " + item.description;
+
+        const location = document.createElement("p");
+        location.textContent =
+            "Location: " + item.location;
+
+        const date = document.createElement("p");
+        date.textContent = "Date: " + item.date;
+
+        const label = document.createElement("p");
+        label.textContent = "Update Complaint Status:";
+
+        const select = document.createElement("select");
+
+        ["Pending", "In Progress", "Resolved"].forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = status;
+            select.appendChild(option);
+        });
+
+        select.value = item.status || "Pending";
+
+        select.addEventListener("change", function() {
+
+            complaints[index].status = this.value;
+
+            localStorage.setItem(
+                "nammaComplaints",
+                JSON.stringify(complaints)
+            );
+
+            loadDashboard();
+
+        });
+
+        card.append(
+            title,
+            details,
+            description,
+            location,
+            date,
+            label,
+            select
+        );
+
+        list.appendChild(card);
+
+    });
+
+    const analytics =
+        document.getElementById("areaAnalytics");
+
+    analytics.innerHTML = "";
+
+    Object.entries(areaCounts).forEach(([area, count]) => {
+
+        const row = document.createElement("div");
+        row.className = "area-row";
+
+        const name = document.createElement("span");
+        name.textContent = area;
+
+        const number = document.createElement("strong");
+        number.textContent = count;
+
+        row.append(name, number);
+        analytics.appendChild(row);
+
+    });
+
+    if (complaints.length === 0) {
+        analytics.innerHTML =
+            '<div class="empty">Analytics will appear after complaints are submitted.</div>';
+    }
+}
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>
